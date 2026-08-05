@@ -157,6 +157,9 @@
     ]
   },
   "_comment_allowedTools": "Bash patterns are mirrored in claude/hooks/permission-learn.sh matches_allowed_tools(). Update both when changing Bash tool patterns.",
+  "env": {
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-opus-4-8"
+  },
   "defaultMode": "dontAsk",
   "enabledPlugins": {},
   "extraKnownMarketplaces": {
