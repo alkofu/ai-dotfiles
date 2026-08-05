@@ -157,6 +157,10 @@
     ]
   },
   "_comment_allowedTools": "Bash patterns are mirrored in claude/hooks/permission-learn.sh matches_allowed_tools(). Update both when changing Bash tool patterns.",
+  "_comment_env": "Pins the opus alias to claude-opus-4-8 because this team's credentials currently 403 on the newer opus-alias target (claude-opus-5). Remove once org-wide access to the newer model is authorized.",
+  "env": {
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-opus-4-8"
+  },
   "defaultMode": "dontAsk",
   "enabledPlugins": {},
   "extraKnownMarketplaces": {
