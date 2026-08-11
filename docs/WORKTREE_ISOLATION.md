@@ -242,8 +242,10 @@ For the authoritative bypass rule, see [`claude/agents/dungeonmaster.md`](/claud
 | Flag | Effect | Use Case |
 |------|--------|----------|
 | `--explore-options` | Scope-exploration mode: invoke Pathfinder to surface scope and implementation options, then stop before plan generation until the user confirms | Architectural decisions, technology selection, multiple viable paths |
+| `--trivial` / `-t` | Asserts the trivial tier for a single-file, single-unambiguous-change task: skips Pathfinder and Phase 2 Ruinor plan review, subject to the Case A/Case B doubt rule and a post-hoc diff-size guardrail. Phase 4 Ruinor implementation review still runs unless `--self-review` is also present. | Typo fixes, one-line config tweaks, and other self-evidently trivial single-file changes |
+| `--self-review` / `-S` | Implies `--trivial` and additionally waives the Phase 4 Ruinor implementation review: DM presents the raw diff verbatim and the user returns one of the four standard verdicts (REJECT / REVISE / ACCEPT / ACCEPT-WITH-RESERVATIONS) directly, with DM acting as a pure conduit. | Trivial changes the user wants to review personally instead of delegating to Ruinor |
 
-Note: the `--explore-options` flag is a constructive-pipeline flag. It has no effect when the session is classified as advisory (`INTENT: advisory`).
+Note: the `--explore-options`, `--trivial`, and `--self-review` flags are constructive-pipeline flags. They have no effect when the session is classified as advisory (`INTENT: advisory`) — `--trivial`/`--self-review` are captured-but-ignored-with-warning in that case. See the `--trivial` and `--self-review` rows in DM's Workflow Flags table (`claude/agents/dungeonmaster.md`) for the full definition, including the Case A/Case B doubt rule and diff-size guardrail.
 
 ## Troubleshooting
 
