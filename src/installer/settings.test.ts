@@ -47,11 +47,64 @@ describe('deepMergeJson', () => {
     assert.strictEqual(merged.env.ANTHROPIC_DEFAULT_OPUS_MODEL, 'new-model');
   });
 
-  it('replaces an array key wholesale rather than concatenating', () => {
+  it('replaces a non-whitelisted array key wholesale rather than concatenating', () => {
+    const base = { someList: ['Bash', 'Read'] };
+    const overlay = { someList: ['Read', 'Write'] };
+    const merged = deepMergeJson(base, overlay);
+    assert.deepStrictEqual(merged.someList, ['Read', 'Write']);
+  });
+
+  it('unions a whitelisted array key, preserving local-only entries after template entries', () => {
     const base = { allowedTools: ['Bash', 'Read'] };
     const overlay = { allowedTools: ['Read', 'Write'] };
     const merged = deepMergeJson(base, overlay);
-    assert.deepStrictEqual(merged.allowedTools, ['Read', 'Write']);
+    assert.deepStrictEqual(merged.allowedTools, ['Read', 'Write', 'Bash']);
+  });
+
+  it('deduplicates whitelisted array entries shared across template and live', () => {
+    const base = { allowedTools: ['Bash', 'Read', 'Write'] };
+    const overlay = { allowedTools: ['Read', 'Write', 'Edit'] };
+    const merged = deepMergeJson(base, overlay);
+    assert.deepStrictEqual(merged.allowedTools, [
+      'Read',
+      'Write',
+      'Edit',
+      'Bash',
+    ]);
+  });
+
+  it('preserves template ordering at the front of a whitelisted array union', () => {
+    const base = { allowedTools: ['Local1', 'Local2'] };
+    const overlay = { allowedTools: ['TemplateA', 'TemplateB', 'TemplateC'] };
+    const merged = deepMergeJson(base, overlay);
+    assert.deepStrictEqual(merged.allowedTools, [
+      'TemplateA',
+      'TemplateB',
+      'TemplateC',
+      'Local1',
+      'Local2',
+    ]);
+  });
+
+  it('deduplicates self-duplicate entries within the live-only array before appending', () => {
+    const base = { allowedTools: ['Local1', 'Local1', 'Local2'] };
+    const overlay = { allowedTools: ['TemplateA'] };
+    const merged = deepMergeJson(base, overlay);
+    assert.deepStrictEqual(merged.allowedTools, [
+      'TemplateA',
+      'Local1',
+      'Local2',
+    ]);
+  });
+
+  it('does not mutate its inputs when combining whitelisted array unions', () => {
+    const base = { allowedTools: ['Bash'] };
+    const overlay = { allowedTools: ['Read'] };
+    const baseCopy = JSON.parse(JSON.stringify(base));
+    const overlayCopy = JSON.parse(JSON.stringify(overlay));
+    deepMergeJson(base, overlay);
+    assert.deepStrictEqual(base, baseCopy);
+    assert.deepStrictEqual(overlay, overlayCopy);
   });
 
   it('does not mutate its inputs', () => {
@@ -113,6 +166,27 @@ describe('installMergedJson', () => {
     const backups = fs
       .readdirSync(tmpDir)
       .filter((f) => f.startsWith('dest-malformed.json.backup.'));
+    assert.strictEqual(backups.length, 1);
+  });
+
+  it('preserves a local-only allowedTools entry across a merge, alongside template entries', () => {
+    const src = path.join(tmpDir, 'template-allowed-tools.json');
+    const dest = path.join(tmpDir, 'dest-allowed-tools.json');
+    fs.writeFileSync(src, JSON.stringify({ allowedTools: ['Bash', 'Read'] }));
+    fs.writeFileSync(
+      dest,
+      JSON.stringify({ allowedTools: ['Read', 'LocalOnlyTool'] }),
+    );
+    installMergedJson(src, dest);
+    const merged = JSON.parse(fs.readFileSync(dest, 'utf8'));
+    assert.deepStrictEqual(merged.allowedTools, [
+      'Bash',
+      'Read',
+      'LocalOnlyTool',
+    ]);
+    const backups = fs
+      .readdirSync(tmpDir)
+      .filter((f) => f.startsWith('dest-allowed-tools.json.backup.'));
     assert.strictEqual(backups.length, 1);
   });
 
