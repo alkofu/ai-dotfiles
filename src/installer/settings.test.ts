@@ -117,8 +117,8 @@ describe('installMergedJson', () => {
   });
 
   it('falls back to overwrite-with-backup when dest parses to a non-object', () => {
-    const src = path.join(tmpDir, 'template-nonobject.json');
-    const dest = path.join(tmpDir, 'dest-nonobject.json');
+    const src = path.join(tmpDir, 'template-non-object.json');
+    const dest = path.join(tmpDir, 'dest-non-object.json');
     fs.writeFileSync(src, JSON.stringify({ allowedTools: ['Bash'] }));
     fs.writeFileSync(dest, JSON.stringify(['not', 'an', 'object']));
     assert.doesNotThrow(() => installMergedJson(src, dest));
@@ -126,7 +126,7 @@ describe('installMergedJson', () => {
     assert.deepStrictEqual(written, { allowedTools: ['Bash'] });
     const backups = fs
       .readdirSync(tmpDir)
-      .filter((f) => f.startsWith('dest-nonobject.json.backup.'));
+      .filter((f) => f.startsWith('dest-non-object.json.backup.'));
     assert.strictEqual(backups.length, 1);
   });
 });
