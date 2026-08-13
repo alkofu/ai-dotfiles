@@ -17,6 +17,22 @@ pre-commit:
       root: dungeon/
       run: uv run ruff format --check {staged_files}
 
+post-merge:
+  commands:
+    rebuild-dist:
+      run: node scripts/rebuild-dist-if-installer-changed.js post-merge
+
+post-checkout:
+  commands:
+    rebuild-dist:
+      run: node scripts/rebuild-dist-if-installer-changed.js post-checkout {1} {2} {3}
+
+post-rewrite:
+  commands:
+    rebuild-dist:
+      use_stdin: true
+      run: node scripts/rebuild-dist-if-installer-changed.js post-rewrite
+
 pre-push:
   parallel: true
   commands:
