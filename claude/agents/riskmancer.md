@@ -169,6 +169,8 @@ Permitted tools include Grep for pattern detection, Bash for dependency audits, 
 
 ## Output Standards
 
+All output below is governed by the shared verbosity caps in `claude/references/review-gates.md § Operational Constraints → Output-Format and Verbosity Contract` (per-finding line budget, prose-section budget, cite-don't-reproduce rule, and the REJECT-only extended rationale cap).
+
 **For plan reviews, structure output as:**
 
 ### Plan Review Summary

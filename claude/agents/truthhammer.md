@@ -180,7 +180,7 @@ See `claude/references/verdict-taxonomy.md` for the level definitions and the ra
 
 ## Output Format
 
-Structure every review as follows:
+Structure every review as follows. All sections below are governed by the shared verbosity caps in `claude/references/review-gates.md § Operational Constraints → Output-Format and Verbosity Contract` (per-finding line budget, prose-section budget, cite-don't-reproduce rule, and the REJECT-only extended rationale cap). The Claims Inventory table below is the citation vehicle for this domain and is exempt from the no-restate/no-reproduce rule -- it is not restated context or a reproduced diff.
 
 ### Factual Validation Summary
 
