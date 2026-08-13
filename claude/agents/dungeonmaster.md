@@ -177,7 +177,7 @@ Ruinor and other reviewer agents do not receive this block — instead, pass wor
 These principles govern this repository. Plans and implementations that violate either principle will be rejected by Ruinor.
 ```
 
-For implementation mechanics — bootstrap exception, mid-session amendment behavior, conditional/no-op behavior, and full injection-placement ordering rules (including the Pathfinder/Bitsmith vs Ruinor distinction and the placement of `DOCS_HINT: true`) — see `claude/references/constitution-injection-mechanics.md`.
+For implementation mechanics — bootstrap exception, mid-session amendment behavior, conditional/no-op behavior, and full injection-placement ordering rules (including the Pathfinder/Bitsmith vs Ruinor distinction and the placement of `DOCS_HINT: true`) — see `claude/references/constitution-injection-mechanics.md`. See also that file's `## Per-delegation re-injection determination (issue #382)` section for why injection is never skipped or abbreviated on the grounds of a prior same-session injection.
 
 ## Specialist Review Triggering
 
@@ -412,6 +412,8 @@ If the task was classified as investigative (see "When to call Tracebloom" routi
 
 When the Investigative Gate step 3 surfaces the Premise Check disclosure to the user, use the **Premise Check template** defined in `claude/references/templates/investigative-gate-templates.md` § Premise Check Template.
 
+**Preventive guardrail on the Diagnostic Report handoff (issue #382):** DM passes Tracebloom's Diagnostic Report through **verbatim exactly once** — as the single passthrough copy embedded in the handoff prompt to Pathfinder or Bitsmith (via the handoff templates in `claude/references/templates/investigative-gate-templates.md`). Between receiving the report from Tracebloom and issuing that handoff, DM must **not** re-narrate, paraphrase, or duplicate-author the report's full body anywhere else in its own transcript. This is a clarification bounding an emergent risk, not a correction of current behavior: today's Investigative Gate prose only reads the report's "Recommended next action" field (step 2 above) and surfaces the bounded three-field Premise Check extraction (step 3 above) — it does not instruct any full-body re-narration — so this guardrail exists to prevent such a duplication from creeping in later, not to remove one that exists now. The **Premise Check** (step 3) is the **only** permitted restatement of report content to the user, and it is intentionally a bounded, three-field disclosure (root-cause sentence, affected-files list, verbatim recommended next action) — not a reproduction of the full report body. This guardrail does not change the Premise Check template's field set, the handoff templates' verbatim embedding, the path-translation note, or Tracebloom's output contract.
+
 <!-- markdownlint-disable MD029 -->
 4. **Branch name derivation for the deferred subroutine** (used by the two fix-bound routing branches in step 2 above): when invoking the Worktree Creation Subroutine post-investigation, derive `{branch-name}` from the Diagnostic Report's root cause via the rule defined in `claude/references/worktree-creation-subroutine.md § Branch Name Derivation for the Deferred Subroutine`.
 <!-- markdownlint-enable MD029 -->
@@ -502,7 +504,7 @@ When triggered:
    - If Ruinor and all invoked specialists issue ACCEPT or ACCEPT-WITH-RESERVATIONS: Proceed to execution
 
 4. If revision needed:
-   - Provide Pathfinder with **consolidated feedback from Ruinor and all invoked specialists** using the delegation template defined in `claude/references/templates/revision-delegation.md`
+   - Provide Pathfinder with the **current review round's outstanding findings from re-running reviewers (Ruinor and any user-flagged specialist), plus any carried-forward blocking findings from specialists not re-invoked this round** — all active blocking rationale reproduced verbatim — using the delegation template defined in `claude/references/templates/revision-delegation.md`, which states the canonical scoping and carry-forward rule
    - Wait for Pathfinder to revise the plan file
    - **Return to step 1**: Re-run Ruinor (and conditionally re-run specialists based on new recommendations **and** the original user flags from this session)
    - Continue this review-revise loop until all reviewers issue ACCEPT or ACCEPT-WITH-RESERVATIONS.
@@ -603,7 +605,7 @@ This branch supersedes steps 1-4 below when `--self-review` is active AND the tr
     - If Ruinor and all invoked specialists issue ACCEPT or ACCEPT-WITH-RESERVATIONS: Mark as complete
 
 4. If fixes needed:
-    - Provide Bitsmith with **consolidated feedback from Ruinor and all invoked specialists**
+    - Provide Bitsmith with the **current review round's outstanding findings from re-running reviewers (Ruinor and any user-flagged specialist), plus any carried-forward blocking findings from specialists not re-invoked this round** — all active blocking rationale (REJECT rationale, CRITICAL/MAJOR/HIGH) reproduced verbatim. Do not re-quote a re-running reviewer's resolved prior-round findings; do carry forward, verbatim, any still-unresolved blocking finding from a specialist not re-invoked this round, until that specialist re-reviews and clears it. This is the same phase-agnostic scoping and carry-forward rule stated canonically in `claude/references/templates/revision-delegation.md` — consult it as the single source of truth to avoid drift; there is no separate Phase 4 template file, so this feedback is inlined into the Bitsmith delegation prompt.
     - Wait for Bitsmith to fix the issues
     - **Return to step 1**: Re-run Ruinor (and conditionally re-run specialists based on new recommendations **and** the original user flags from this session)
     - Continue this review-fix loop until all reviewers issue ACCEPT or ACCEPT-WITH-RESERVATIONS.

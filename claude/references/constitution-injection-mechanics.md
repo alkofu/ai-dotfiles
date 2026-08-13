@@ -14,6 +14,14 @@ This file documents the implementation mechanics of project-constitution injecti
 
 **Conditional/no-op behavior:** If the resolved constitution path does not exist (bootstrap session before the file is created; DM operating in a different repo; file deleted), DM skips injection silently — no warning, no error.
 
+## Per-delegation re-injection determination (issue #382)
+
+**Determination:** Full, verbatim constitution injection is required on **every** Pathfinder, Bitsmith, and Ruinor delegation — there is no safe way to skip or abbreviate injection on the grounds that "the constitution was already injected earlier this session." A session-scoped "already injected" flag, or a hash-reference substitute (injecting a hash or pointer instead of the full body on subsequent delegations), is **not safe** and is explicitly rejected as an approach.
+
+**Governing reason:** each receiving sub-agent is a fresh, stateless context with no memory of prior invocations and no visibility into other agents' delegations this session. The delegation prompt DM composes is that sub-agent's entire input; DM's own transcript (where any prior injection happened) is never shared with it. Consequently, "already injected earlier this session" is never true from the receiving agent's perspective — every delegation is, from that agent's point of view, the first and only time it has seen the constitution. Any mechanism that relies on session memory of a prior injection (a flag, a hash reference, or similar) would silently starve the receiving agent of the constitution text it needs to self-enforce Principles 1 and 2, and to have Ruinor detect violations of them.
+
+This determination applies to DM's own behavior (what it composes into delegation prompts); it does not alter the injection mechanics, format, or agent list documented elsewhere in this file.
+
 ## Injection placement (full ordering rules)
 
 - For Pathfinder and Bitsmith delegations: insert the injected block **after** the Worktree Context Block (`WORKING_DIRECTORY:` / `WORKTREE_BRANCH:` / `REPO_SLUG:` lines and the trailing scope sentence) and **before** the task-specific delegation content (e.g., `## Investigation Request`, `## Confirmed Scope`, `## Plan to Revise`, or the equivalent task header for the delegation type). When `DOCS_HINT: true` is also being emitted (because `--docs` was detected in the user's message body — per the DOCS_HINT propagation rule in Phase 1 step 3 of claude/agents/dungeonmaster.md), it is placed **after** the Project Constitution Injection block and **before** the task-specific delegation content. Full delegation-prompt order for Pathfinder and Bitsmith is therefore: Worktree Context Block → Project Constitution Injection (when present) → `DOCS_HINT: true` (when present) → task-specific content. Both Constitution Injection and `DOCS_HINT: true` are composed by DM at delegation time; neither is part of any static template.
