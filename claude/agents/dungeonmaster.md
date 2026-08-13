@@ -807,35 +807,9 @@ When `--save-report` is active, execute the following after delivering the inlin
 
 1. Determine the repo root: run `git rev-parse --show-toplevel`. If this fails (not a git repo), log a warning to the user ("Not inside a git repository — skipping report file write.") and skip steps 2-3.
 2. Compute the report path: `{REPO_ROOT}/reports/{SESSION_TS}-{SESSION_SLUG}.md`
-3. Delegate to Bitsmith with the following template:
+3. Delegate to Bitsmith using the **save-report Bitsmith delegation template** defined in `claude/references/templates/save-report-bitsmith-delegation.md`.
 
-```
-## Report Write Task
-
-Write the advisory report to disk. This is a single file write — no code changes, no tests, no review needed.
-
-**Report path:** {REPO_ROOT}/reports/{SESSION_TS}-{SESSION_SLUG}.md
-**Directory creation:** Run `mkdir -p {REPO_ROOT}/reports` before writing.
-
-**Report content:** Write the following content to the file:
-
----begin report content---
-# Advisory Report: {SESSION_SLUG}
-
-**Date:** {SESSION_TS}
-**Question:** {user's original question, verbatim}
-
-## Answer
-
-{Phase C synthesis output — the full answer as delivered inline, including agent attributions}
-
-## Sources
-
-{Sources list compiled during Phase C}
----end report content---
-```
-
-1. After Bitsmith confirms the write, log the report path to the user: "Report saved to `{report path}`"
+4. After Bitsmith confirms the write, log the report path to the user: "Report saved to `{report path}`"
 
 **`--execute` post-synthesis step (conditional):**
 
