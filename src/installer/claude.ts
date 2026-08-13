@@ -3,6 +3,7 @@ import * as path from 'node:path';
 import * as os from 'node:os';
 import { c } from './colors.js';
 import { installPath } from './fs-utils.js';
+import { installMergedJson } from './settings.js';
 import { CLAUDE_WHITELIST_DIRS, CLAUDE_WHITELIST_FILES } from './constants.js';
 
 export function installClaudeWhitelist(
@@ -39,7 +40,11 @@ export function installClaudeWhitelist(
     try {
       const stat = fs.statSync(fileSrc);
       if (stat.isFile()) {
-        installPath(fileSrc, fileDest);
+        if (fileName === 'settings.json') {
+          installMergedJson(fileSrc, fileDest);
+        } else {
+          installPath(fileSrc, fileDest);
+        }
       } else {
         console.log(
           c.yellow(`Skipping claude/${fileName} (not a regular file)`),

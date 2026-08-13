@@ -23,7 +23,7 @@ Run the installation script:
 
 The installer accepts an optional `--target-agent <name>` flag to select which agent to install for. The only currently supported value is `claude`, which is also the default.
 
-The installer copies the whitelisted paths (`CLAUDE.md`, `settings.json`, `skills/`, `agents/`, `commands/`, `hooks/`, `references/`, `scripts/`) from `claude/` into `~/.claude/` and, when present, into `~/.cursor/`. Anything else in the repo or on disk under those destinations is left untouched except where those paths are replaced (after a timestamped backup).
+The installer copies the whitelisted paths (`CLAUDE.md`, `settings.json`, `skills/`, `agents/`, `commands/`, `hooks/`, `references/`, `scripts/`) from `claude/` into `~/.claude/` and, when present, into `~/.cursor/`. Anything else in the repo or on disk under those destinations is left untouched except where those paths are replaced (after a timestamped backup). `settings.json` is the one exception to a wholesale replace: the installer deep-merges the template over any existing live file, so local-only keys (e.g. `apiKeyHelper`, `model`, extra `env` entries) are preserved rather than dropped.
 
 The `.claude/` directory is never synced by the installer — it remains project-local.
 

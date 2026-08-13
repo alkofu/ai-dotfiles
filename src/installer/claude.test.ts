@@ -17,7 +17,9 @@ function buildFakeClaudeSrc(
   fs.mkdirSync(claudeSrc, { recursive: true });
   for (const name of include) {
     const p = path.join(claudeSrc, name);
-    if (CLAUDE_WHITELIST_FILES.includes(name)) {
+    if (name === 'settings.json') {
+      fs.writeFileSync(p, JSON.stringify({ fake: 'settings.json' }));
+    } else if (CLAUDE_WHITELIST_FILES.includes(name)) {
       fs.writeFileSync(p, `fake ${name}`);
     } else {
       fs.mkdirSync(p, { recursive: true });
@@ -78,5 +80,44 @@ describe('installClaudeWhitelist', () => {
     assert.ok(fs.existsSync(path.join(dotClaude, 'settings.json')));
     assert.ok(fs.existsSync(path.join(dotClaude, 'skills')));
     assert.ok(!fs.existsSync(path.join(dotClaude, 'CLAUDE.md')));
+  });
+
+  it('merges settings.json, preserving local-only keys and applying template conflicts', () => {
+    const src = path.join(tmpDir, 'merge-settings-src');
+    const dest = path.join(tmpDir, 'merge-settings-dest');
+    buildFakeClaudeSrc(src, ['settings.json']);
+    fs.writeFileSync(
+      path.join(src, 'claude', 'settings.json'),
+      JSON.stringify({
+        allowedTools: ['Bash', 'Read'],
+        env: { ANTHROPIC_DEFAULT_OPUS_MODEL: 'template-model' },
+      }),
+    );
+    const destSettingsPath = path.join(dest, '.claude', 'settings.json');
+    fs.mkdirSync(path.dirname(destSettingsPath), { recursive: true });
+    fs.writeFileSync(
+      destSettingsPath,
+      JSON.stringify({
+        apiKeyHelper: 'helper.sh',
+        model: 'claude-opus-4-8[1m]',
+        env: {
+          ANTHROPIC_BASE_URL: 'https://local.example.com',
+          ANTHROPIC_DEFAULT_OPUS_MODEL: 'local-model',
+        },
+      }),
+    );
+    installClaudeWhitelist(src, dest);
+    const merged = JSON.parse(fs.readFileSync(destSettingsPath, 'utf8'));
+    assert.strictEqual(merged.apiKeyHelper, 'helper.sh');
+    assert.strictEqual(merged.model, 'claude-opus-4-8[1m]');
+    assert.strictEqual(
+      merged.env.ANTHROPIC_BASE_URL,
+      'https://local.example.com',
+    );
+    assert.strictEqual(
+      merged.env.ANTHROPIC_DEFAULT_OPUS_MODEL,
+      'template-model',
+    );
+    assert.deepStrictEqual(merged.allowedTools, ['Bash', 'Read']);
   });
 });
