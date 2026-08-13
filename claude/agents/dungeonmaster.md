@@ -809,7 +809,7 @@ When `--save-report` is active, execute the following after delivering the inlin
 2. Compute the report path: `{REPO_ROOT}/reports/{SESSION_TS}-{SESSION_SLUG}.md`
 3. Delegate to Bitsmith using the **save-report Bitsmith delegation template** defined in `claude/references/templates/save-report-bitsmith-delegation.md`.
 
-1. After Bitsmith confirms the write, log the report path to the user: "Report saved to `{report path}`"
+4. After Bitsmith confirms the write, log the report path to the user: "Report saved to `{report path}`"
 
 **`--execute` post-synthesis step (conditional):**
 
