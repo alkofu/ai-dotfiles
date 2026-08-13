@@ -48,7 +48,7 @@ pnpm run setup
 
 **Note:** The `pnpm run build` command bundles the installer via esbuild into `dist/installer.js`. The `pnpm run setup` command executes the pre-built bundle, ensuring your development environment uses the same code path as end-users. This keeps installer behavior consistent during development.
 
-After setup, you can test changes locally. Lefthook runs shellcheck + markdownlint at pre-commit and signed-commit verification, JS/TS lint, format checks, YAML lint, shell format check, spell-check, mypy, and pytest at pre-push.
+After setup, you can test changes locally. Lefthook runs shellcheck + markdownlint at pre-commit and signed-commit verification, JS/TS lint, format checks, YAML lint, shell format check, spell-check, mypy, and pytest at pre-push. Lefthook also auto-rebuilds both dist bundles (`dist/installer.js` and `dist/launcher.cjs`) at `post-merge`, `post-checkout`, and `post-rewrite` via `scripts/rebuild-dist-if-installer-changed.js`, whenever `src/installer/**`, `src/launcher/**`, `build.ts`, or `package.json` change — see the Auto-Rebuild Hooks section below for coverage details and limitations.
 
 **Note:** The installer automatically backs up any existing configurations with a timestamp before overwriting them.
 
@@ -91,6 +91,22 @@ Lefthook runs shellcheck (`pnpm run lint:sh`) on staged `.sh` files and markdown
 Lefthook runs signed-commit verification, lint, format, shell format-check, spell-check, and YAML lint on every push. The `verify-signed-commits` check runs first (unconditionally, via stdin): it inspects every commit being pushed that was authored by the current user and fails if any commit is unsigned or has a bad or revoked signature. Signatures that are valid but whose key is not in the local signers database are accepted — no `gpg.ssh.allowedSignersFile` configuration is required. JS/TS file changes trigger `pnpm run lint` and `pnpm run format:check`; shell file changes trigger `pnpm run format:check:sh`; YAML file changes trigger `pnpm run lint:yaml`; Markdown, TypeScript, or shell file changes trigger `pnpm run spellcheck`. If any check fails, the push is blocked. To satisfy the signed-commit check, ensure your commits are GPG- or SSH-signed — see the [GitHub documentation on signing commits](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits). Run `pnpm run format` to auto-fix TypeScript formatting issues. Markdown, YAML, and spelling violations must be fixed manually. Hook configuration lives in `lefthook.yml`.
 
 **Note for sibling-worktree onboarding:** After pulling this change into existing worktrees, run `pnpm install` to pick up the new `cspell` dependency. Without this, the pre-push hook will fail with `cspell: command not found`.
+
+**Auto-Rebuild Hooks (dist bundle staleness):**
+
+Because `dist/installer.js` and `dist/launcher.cjs` are pre-built bundles checked into the repo, they can go stale relative to their TypeScript sources after operations like `git pull` or `git rebase`. Lefthook's `post-merge`, `post-checkout`, and `post-rewrite` hooks run `scripts/rebuild-dist-if-installer-changed.js`, which inspects the changed files and runs `pnpm run build` (regenerating both bundles) whenever `src/installer/**`, `src/launcher/**`, `build.ts`, or `package.json` are affected. Coverage varies by hook:
+
+| Hook | Covered operations |
+| --- | --- |
+| `post-merge` | `git merge`, non-rebase `git pull` (including fast-forward), and a **clean fast-forward `git pull --rebase` with no local commits** — its fast-forward path uses git's merge machinery and sets `ORIG_HEAD`, so `post-merge` fires. This is empirically verified on git 2.50.1, not an officially documented git guarantee. |
+| `post-checkout` | Branch switches only (`flag=1`); a file-level `git checkout -- <file>` (`flag=0`) is a deliberate no-op. |
+| `post-rewrite` | `git rebase`, `git pull --rebase`, and `git commit --amend` that actually rewrite commits — including rebasing local commits onto a diverged base, since the per-pair `old..new` snapshot diff surfaces a build-input change arriving via the new base through the tip pair. Detection uses the stdin `<old-sha> <new-sha>` pairs; there is no `ORIG_HEAD`-based source in `post-rewrite`. |
+
+**Real limitations (not silent coverage gaps):** operations that fire none of the three hooks do not auto-rebuild — notably `git cherry-pick` and `git reset --hard`. File-level `git checkout -- <file>` (`flag=0`) is intentionally a no-op. And **pre-existing local staleness** — a local build-input commit whose `dist/` was never rebuilt, later surfaced by a rebase that does not change the net installer delta — is not caught, because the detector is a net-delta diff in which unchanged content cancels out. In all of these cases, run `pnpm run build` manually, or the next covered net-delta operation will rebuild the bundles.
+
+**Existing-maintainer activation requirement:** after pulling this change, existing maintainers must run `pnpm install` (or `pnpm exec lefthook install`) **once** so Lefthook regenerates the `.git/hooks/post-merge`, `post-checkout`, and `post-rewrite` shims for the newly added hook types. Until this is done, the auto-rebuild silently does nothing.
+
+**Fresh-clone limitation:** a brand-new clone has no git hooks installed until the first `pnpm install` (via the `prepare` script, which runs `lefthook install`), so the very first build must still be run manually (`pnpm run build`). This onboarding gap is unrelated to the hooks above and out of scope for this change.
 
 ### Code Quality: Shell Linting and Formatting
 

@@ -183,3 +183,53 @@ Two findings (#5 and #8) diverge from the plan's stated design/acceptance criter
 surfaced here rather than silently patched, per the Step 3 delegation's explicit instruction.
 Neither required a source change under `src/installer/**` or `src/launcher/**`; no such files were
 modified during this verification.
+
+## Addendum: Step 3 re-confirmation and Step 4 runtime verification matrix
+
+The plan was subsequently corrected (design-of-record: the per-pair `old..new` diff in
+`post-rewrite` is a net-delta/whole-snapshot diff, not a per-commit parent diff — it correctly
+declines byte-identical content and correctly catches a genuinely diverged base carrying a
+build-input change) and re-reviewed by Ruinor (ACCEPT, 0/0/0 findings). This addendum records the
+re-confirmation of Step 3 and the full Step 4 runtime verification matrix executed against that
+corrected design, on the same environment (`git version 2.50.1 (Apple Git-155)`, `lefthook
+v2.1.10`, worktree `.worktrees/stale-dist-installer-bundle`, branch
+`fix/stale-dist-installer-bundle`).
+
+### Step 3 re-confirmation
+
+`git diff 2a61250 -- scripts/rebuild-dist-if-installer-changed.js` returned empty output: the
+helper is byte-for-byte unchanged from commit `2a61250`. Code inspection of the `post-rewrite`
+branch confirms it reads stdin `<old-sha> <new-sha>` pairs, unions
+`git diff-tree -r --name-only --no-commit-id <old-sha> <new-sha>` across all pairs, and contains no
+`ORIG_HEAD..HEAD` source and no `<new-sha>^ <new-sha>` parent diff. The idempotency/rebase-noise
+comment (lines 106-110) is also unchanged and remains accurate. **Result: PASS.**
+
+### Step 4 runtime verification matrix
+
+All test branches were created off a shared `scratch-step4-base` chain (itself descended from
+`2a61250`) and deleted after verification; no permanent branch history was disturbed. `src/installer/**`
+and `src/launcher/**` were never modified except as scratch, throwaway commits on these scratch
+branches.
+
+| #   | Case                                                                                                                                                                                                                 | Result                                                                                                                                                                                                      |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Hook registration (`pnpm exec lefthook install`)                                                                                                                                                                     | PASS                                                                                                                                                                                                        |
+| 2   | `post-merge` positive: installer / `build.ts` / `package.json` (ff-merge)                                                                                                                                            | PASS (all three)                                                                                                                                                                                            |
+| 3   | `post-merge` positive: launcher-only                                                                                                                                                                                 | PASS                                                                                                                                                                                                        |
+| 4   | `post-merge` positive: clean fast-forward `git pull --rebase`, zero local commits                                                                                                                                    | PASS — fires via `post-merge` (`ORIG_HEAD` set by git's ff-via-merge-machinery short-circuit); confirms Discrepancy 2 from the original Step 3 notes was a plan-claim issue, not an implementation bug      |
+| 5   | `post-checkout` positive (flag=1, branch switch)                                                                                                                                                                     | PASS                                                                                                                                                                                                        |
+| 6   | `post-rewrite` positive: local commit rebased onto a genuinely diverged base carrying an installer change (Ruinor's required case)                                                                                   | PASS — the per-pair `old..new` diff correctly surfaces the installer change carried in via the new base                                                                                                     |
+| 7   | `post-rewrite` positive: `git commit --amend`                                                                                                                                                                        | PASS                                                                                                                                                                                                        |
+| 8   | `post-rewrite` positive: multi-commit rebase, one of several replayed commits touches an installer file, onto a diverged base                                                                                        | PASS (after correcting an initial flawed test setup that inadvertently produced the byte-identical case instead — see case 10)                                                                              |
+| 9   | `post-rewrite` positive: squash-during-interactive-rebase                                                                                                                                                            | PASS — two `post-rewrite` invocations fired (one per squash step), both real builds; consistent with the documented idempotency rationale (no rebase-in-progress guard needed)                              |
+| 10  | `post-rewrite` negative: byte-identical-installer rebase (local installer commit rebased onto a base whose own divergence does not touch the installer, so the commit's full snapshot is unchanged pre/post rewrite) | PASS — no-op (0.04s), no rebuild; this is the correctly-declined counterpart to case 6, and is mechanically identical to the "pre-existing local staleness" limitation below                                |
+| 11  | `post-checkout` negative: file-level checkout (flag=0) of an in-scope file                                                                                                                                           | PASS — no-op (0.04s), mtime unchanged, working tree clean                                                                                                                                                   |
+| 12  | Negative: unrelated-only change (docs-only), via ff-merge                                                                                                                                                            | PASS — `post-merge` fires but no-ops (0.05s), mtime unchanged                                                                                                                                               |
+| 13  | Limitation: `git cherry-pick <commit touching src/installer/**>`                                                                                                                                                     | Confirmed limitation — no hook fires at all (cherry-pick isn't wired to `post-merge`/`post-checkout`/`post-rewrite`); installer content changes with no rebuild, as documented                              |
+| 14  | Limitation: `git reset --hard <ref>` reverting an installer change                                                                                                                                                   | Confirmed limitation — no hook fires at all; installer content reverts with no rebuild, as documented                                                                                                       |
+| 15  | Limitation: pre-existing local staleness (local installer commit never rebuilt, later rebased onto a base with no net installer delta)                                                                               | Confirmed limitation — mechanically identical to case 10 (byte-identical full-snapshot diff across the pair); the detector is a net-delta diff so it cannot distinguish "always stale" from "never changed" |
+| 16  | `git status --porcelain` clean after rebuild                                                                                                                                                                         | PASS — checked after every case above; `dist/` is gitignored and never appears as a tracked-file diff                                                                                                       |
+
+All 16 items pass against their expected outcome (positive cases rebuild, negative/limitation cases
+correctly do not). No changes were made to `scripts/rebuild-dist-if-installer-changed.js`,
+`lefthook.yml`, `src/installer/**`, or `src/launcher/**` during this verification pass.
