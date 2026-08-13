@@ -11,7 +11,7 @@ Action:
   - Plan contains "OAuth" keyword → confirms security-sensitive
   - Invoke Riskmancer for deep security review
   - Ruinor: ACCEPT-WITH-RESERVATIONS, Riskmancer: REVISE (missing CSRF, token expiry too long)
-  - Delegate to Pathfinder with `REVISION_MODE: true` and consolidated feedback
+  - Delegate to Pathfinder with `REVISION_MODE: true` and the current round's outstanding findings (per the scoping rule in `claude/references/templates/revision-delegation.md`)
   - Pathfinder revises plan (skips user confirmation, overwrites plan file directly)
   - Re-run Ruinor + Riskmancer → both ACCEPT
 - Once plan approved, delegate implementation steps to Bitsmith
@@ -57,7 +57,7 @@ Action:
   - Invoke Truthhammer for factual verification of Redis 7 config keys and behavioral changes
   - Ruinor: ACCEPT-WITH-RESERVATIONS
   - Truthhammer: REVISE (2 findings: FV-1 CRITICAL -- deprecated config key `slave-read-only` replaced by `replica-read-only` in Redis 7; FV-2 HIGH -- incorrect default value for `maxmemory-policy`)
-  - Send consolidated feedback to Pathfinder
+  - Send the current round's outstanding findings to Pathfinder (per the scoping rule in `claude/references/templates/revision-delegation.md`)
   - Pathfinder revises plan
   - Re-run Ruinor + Truthhammer → both ACCEPT
 - Delegate implementation to Bitsmith
