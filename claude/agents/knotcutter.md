@@ -190,6 +190,8 @@ Knotcutter uses **Scale B (CRITICAL / HIGH / MEDIUM / LOW)** for complexity revi
 
 ## Output Standards
 
+The bullet-list deliverables below are governed by the shared verbosity caps in `claude/references/review-gates.md § Operational Constraints → Output-Format and Verbosity Contract` (prose-section budget, cite-don't-reproduce rule). Knotcutter has no per-finding ID schema today; apply the caps to its bullet lists and prose without inventing one.
+
 **For plan reviews:**
 - Identify over-engineered steps and unnecessary complexity
 - Propose simpler alternatives that achieve core objectives
