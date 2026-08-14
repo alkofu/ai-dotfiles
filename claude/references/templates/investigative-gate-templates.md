@@ -55,7 +55,7 @@ The following Diagnostic Report was produced by Tracebloom after investigating a
 
 **Path translation note:** the Diagnostic Report below was produced before this worktree existed. Any absolute file paths in the report's `Evidence` section are rooted at the main repository (`{REPO_ROOT}`). When you read those files, substitute `{WORKTREE_PATH}` for the `{REPO_ROOT}` prefix — the file contents are byte-identical between the main repo at `HEAD` and this worktree's initial commit, assuming a clean main-repo working tree at investigation time; if the main repo had uncommitted changes when Tracebloom ran, some evidence paths may reflect those changes rather than HEAD. Do not attempt to read or write files at the original main-repo paths.
 
-{Tracebloom's Diagnostic Report, verbatim}
+{Tracebloom's Diagnostic Report, verbatim -- this is the single, one-time verbatim passthrough authored at handoff; it is the report's single reproduction point downstream (see `dungeonmaster.md` Investigative Gate preventive guardrail)}
 
 [Rest of Pathfinder delegation as normal]
 ```
@@ -74,7 +74,7 @@ The following Diagnostic Report was produced by Tracebloom after investigating a
 
 **Path translation note:** the Diagnostic Report below was produced before this worktree existed. Any absolute file paths in the report's `Evidence` section are rooted at the main repository (`{REPO_ROOT}`). When you read those files, substitute `{WORKTREE_PATH}` for the `{REPO_ROOT}` prefix — the file contents are byte-identical between the main repo at `HEAD` and this worktree's initial commit, assuming a clean main-repo working tree at investigation time; if the main repo had uncommitted changes when Tracebloom ran, some evidence paths may reflect those changes rather than HEAD. Do not attempt to read or write files at the original main-repo paths.
 
-{Tracebloom's Diagnostic Report, verbatim}
+{Tracebloom's Diagnostic Report, verbatim -- this is the single, one-time verbatim passthrough authored at handoff; it is the report's single reproduction point downstream (see `dungeonmaster.md` Investigative Gate preventive guardrail)}
 
 ## Instructions
 Implement the trivial fix described in the report's `Recommended next action`. Follow the standard Bitsmith implementation protocol. Do not modify scope beyond what the report identifies.
