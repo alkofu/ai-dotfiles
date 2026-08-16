@@ -38,6 +38,21 @@ else
   exit 1
 fi
 
+# Verify the active gh account can resolve the target repo. `gh auth status` only confirms
+# that some account is logged in -- it does not confirm the currently-active account has
+# access to this specific repo. Catch that mismatch here with an explicit, actionable
+# message instead of letting a later `gh api graphql` failure exit via `set -e` with gh's
+# raw, unwrapped error.
+if ! gh repo view "$owner/$repo" >/dev/null 2>&1; then
+  printf 'Could not access %s/%s via the active gh account.\n' "$owner" "$repo" >&2
+  # shellcheck disable=SC2016  # backticks are intentional literal output, not command substitution
+  printf 'If you are logged into multiple gh accounts, run `gh auth status` to see which\n' >&2
+  # shellcheck disable=SC2016
+  printf 'account is active, then `gh auth switch --hostname github.com --user <account>`\n' >&2
+  printf 'to switch to an account with access.\n' >&2
+  exit 1
+fi
+
 # Fetch all pages of unresolved review threads via GraphQL and merge them.
 # NOTE (F-001): `gh api graphql --paginate` emits one separate JSON document per page
 # concatenated to stdout — NOT a single merged document. `jq -s` (slurp) is required to
