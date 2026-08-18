@@ -11,5 +11,3 @@ export const c = {
   yellow: (msg: string) => wrap('\x1b[1;33m', msg),
   blue: (msg: string) => wrap('\x1b[0;34m', msg),
 };
-
-export const nc = '\x1b[0m';
