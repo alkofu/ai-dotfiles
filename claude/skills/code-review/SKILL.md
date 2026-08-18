@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: Defines the high-signal review contract for code and diff reviews. Use whenever the user asks for a code review, PR review, diff review, asks to review a pull request, asks "is this code OK to merge", asks to identify issues in a changeset, or invokes a `/review` command — even when the user does not explicitly say "skill". This skill determines what qualifies as a reportable finding, what does not, and how findings are structured and validated before being reported. Invoke it before surfacing any review findings, not after.
+description: Defines the high-signal review contract for code and diff reviews. Use whenever the user asks for a code review, PR review, diff review, asks to review a pull request, asks "is this code OK to merge", asks to identify issues in a changeset, or invokes a `/review-pr` command — even when the user does not explicitly say "skill". This skill determines what qualifies as a reportable finding, what does not, and how findings are structured and validated before being reported. Invoke it before surfacing any review findings, not after.
 ---
 
 # Code Review
