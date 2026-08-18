@@ -3,7 +3,7 @@ import * as path from 'node:path';
 import * as os from 'node:os';
 import { c } from './colors.js';
 
-/** Matches test-script basenames (e.g. test-permission-learn.sh) that must never be installed. */
+/** Matches test-script file names (e.g. test-permission-learn.sh) that must never be installed. */
 const TEST_FILE_PATTERN = /^test-.*\.sh$/;
 
 const pad = (n: number, len = 2) => String(n).padStart(len, '0');
