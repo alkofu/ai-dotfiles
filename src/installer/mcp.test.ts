@@ -15,6 +15,7 @@ import {
   removeLegacyGithubRegistration,
   assertWrappersDirNotWorldWritable,
   updateGithubAllowList,
+  addMcpServer,
 } from './mcp.js';
 
 // ---------------------------------------------------------------------------
@@ -649,6 +650,129 @@ describe('removeLegacyGithubRegistration', () => {
 
   it('does not throw when the command fails (legacy registration absent)', () => {
     assert.doesNotThrow(() => removeLegacyGithubRegistration(alwaysThrowStub));
+  });
+});
+
+// ---------------------------------------------------------------------------
+// addMcpServer
+// ---------------------------------------------------------------------------
+
+function withCapturedLog<T>(fn: () => T): { result: T; logLines: string[] } {
+  const originalLog = console.log;
+  const logLines: string[] = [];
+  console.log = (...args: unknown[]) => logLines.push(args.join(' '));
+  try {
+    const result = fn();
+    return { result, logLines };
+  } finally {
+    console.log = originalLog;
+  }
+}
+
+describe('addMcpServer', () => {
+  const commandServer = {
+    name: 'kubernetes',
+    scope: 'user' as const,
+    transport: 'stdio' as const,
+    command: 'kubectl',
+    args: ['mcp', 'serve'],
+  };
+
+  it('returns true and logs green on success', () => {
+    const repoRoot = fs.mkdtempSync(path.join(tmpDir, 'repo-add-ok-'));
+    const calls: SpawnCall[] = [];
+    const stub = (cmd: string, args: string[]) => {
+      calls.push({ cmd, args });
+    };
+
+    const { result, logLines } = withCapturedLog(() =>
+      addMcpServer(commandServer, repoRoot, stub),
+    );
+
+    assert.strictEqual(result, true);
+    assert.strictEqual(calls.length, 1);
+    assert.deepStrictEqual(calls[0]!.args, [
+      'mcp',
+      'add',
+      '-s',
+      'user',
+      '-t',
+      'stdio',
+      '--',
+      'kubernetes',
+      'kubectl',
+      'mcp',
+      'serve',
+    ]);
+    assert.ok(
+      logLines.some((l) =>
+        l.includes(`MCP server '${commandServer.name}' added`),
+      ),
+      `expected added log, got: ${logLines.join(', ')}`,
+    );
+  });
+
+  it('returns false and logs red on failure', () => {
+    const repoRoot = fs.mkdtempSync(path.join(tmpDir, 'repo-add-fail-'));
+
+    const { result, logLines } = withCapturedLog(() =>
+      addMcpServer(commandServer, repoRoot, alwaysThrowStub),
+    );
+
+    assert.strictEqual(result, false);
+    assert.ok(
+      logLines.some((l) =>
+        l.includes(`Failed to add MCP server '${commandServer.name}'`),
+      ),
+      `expected failure log, got: ${logLines.join(', ')}`,
+    );
+  });
+
+  it('warns yellow on ENOENT prereq but still calls spawnFn', () => {
+    const repoRoot = fs.mkdtempSync(path.join(tmpDir, 'repo-add-prereq-'));
+    const missingPrereq = path.join(repoRoot, 'does-not-exist');
+    const server = { ...commandServer, prereq: missingPrereq };
+
+    const calls: SpawnCall[] = [];
+    const stub = (cmd: string, args: string[]) => {
+      calls.push({ cmd, args });
+    };
+
+    const { result, logLines } = withCapturedLog(() =>
+      addMcpServer(server, repoRoot, stub),
+    );
+
+    assert.strictEqual(result, true);
+    assert.strictEqual(calls.length, 1);
+    assert.ok(
+      logLines.some(
+        (l) =>
+          l.includes('Warning:') &&
+          l.includes(missingPrereq) &&
+          l.includes(`${server.name} MCP will fail until this file is created`),
+      ),
+      `expected prereq warning, got: ${logLines.join(', ')}`,
+    );
+  });
+
+  it('does not warn when prereq is undefined, and calls spawnFn normally', () => {
+    const repoRoot = fs.mkdtempSync(path.join(tmpDir, 'repo-add-no-prereq-'));
+
+    const calls: SpawnCall[] = [];
+    const stub = (cmd: string, args: string[]) => {
+      calls.push({ cmd, args });
+    };
+
+    const { result, logLines } = withCapturedLog(() =>
+      addMcpServer(commandServer, repoRoot, stub),
+    );
+
+    assert.strictEqual(result, true);
+    assert.strictEqual(calls.length, 1);
+    assert.ok(
+      !logLines.some((l) => l.includes('Warning:')),
+      `expected no warning, got: ${logLines.join(', ')}`,
+    );
   });
 });
 
