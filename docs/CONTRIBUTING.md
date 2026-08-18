@@ -14,7 +14,7 @@ Dependency updates are automated via Dependabot (`.github/dependabot.yml`). On a
 
 The `dungeon/` directory is a Python library subproject. Any commit that touches `dungeon/**/*.py` triggers `lefthook` hooks that run `ruff` (lint and format), `mypy` (type-check), and `pytest` (tests); `mypy` and `pytest` are skipped automatically during merge and rebase operations. These hooks require `uv` to be installed — see the [uv installation guide](https://docs.astral.sh/uv/getting-started/installation/) if the hooks fail with a `uv: command not found` error.
 
-The same checks run in CI via the parallel `python` job in `.github/workflows/ci.yml`. For formatting failures, run `uv run ruff format dungeon/` and commit the result.
+The same checks run in CI via the parallel `python` job in `.github/workflows/ci.yml`. For formatting failures, run `cd dungeon && uv run ruff format .` and commit the result.
 
 ## Configuration Updates
 
