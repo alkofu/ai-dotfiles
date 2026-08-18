@@ -35,6 +35,7 @@
     "format:check": "oxfmt --check src/installer/ src/launcher/ scripts/",
     "lint:sh": "shellcheck claude/hooks/*.sh claude/scripts/*.sh src/launcher/*.sh src/mcp/wrappers/*.sh clean-backups.sh install.sh recover.sh",
     "format:sh": "shfmt -i 2 -ci -bn -w claude/hooks/*.sh claude/scripts/*.sh src/launcher/*.sh src/mcp/wrappers/*.sh clean-backups.sh install.sh recover.sh",
-    "format:check:sh": "shfmt -i 2 -ci -bn -d claude/hooks/*.sh claude/scripts/*.sh src/launcher/*.sh src/mcp/wrappers/*.sh clean-backups.sh install.sh recover.sh"
+    "format:check:sh": "shfmt -i 2 -ci -bn -d claude/hooks/*.sh claude/scripts/*.sh src/launcher/*.sh src/mcp/wrappers/*.sh clean-backups.sh install.sh recover.sh",
+    "test:sh": "bash claude/hooks/test-permission-learn.sh"
   }
 }

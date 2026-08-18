@@ -62,6 +62,29 @@ describe('installPath', () => {
       .filter((f) => f.startsWith('copy-dest2.backup.'));
     assert.strictEqual(backups.length, 1);
   });
+
+  it('excludes top-level test-*.sh files while copying other files', () => {
+    const srcDir = path.join(tmpDir, 'copy-src-test-filter');
+    const destDir = path.join(tmpDir, 'copy-dest-test-filter');
+    fs.mkdirSync(srcDir);
+    fs.writeFileSync(path.join(srcDir, 'keep.sh'), 'echo keep');
+    fs.writeFileSync(path.join(srcDir, 'test-something.sh'), 'echo test');
+    installPath(srcDir, destDir);
+    assert.ok(fs.existsSync(path.join(destDir, 'keep.sh')));
+    assert.ok(!fs.existsSync(path.join(destDir, 'test-something.sh')));
+  });
+
+  it('excludes nested test-*.sh files while copying other nested files', () => {
+    const srcDir = path.join(tmpDir, 'copy-src-test-filter-nested');
+    const destDir = path.join(tmpDir, 'copy-dest-test-filter-nested');
+    const nestedSrc = path.join(srcDir, 'nested');
+    fs.mkdirSync(nestedSrc, { recursive: true });
+    fs.writeFileSync(path.join(nestedSrc, 'keep.sh'), 'echo keep');
+    fs.writeFileSync(path.join(nestedSrc, 'test-nested.sh'), 'echo test');
+    installPath(srcDir, destDir);
+    assert.ok(fs.existsSync(path.join(destDir, 'nested', 'keep.sh')));
+    assert.ok(!fs.existsSync(path.join(destDir, 'nested', 'test-nested.sh')));
+  });
 });
 
 describe('installDir', () => {

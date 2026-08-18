@@ -3,6 +3,9 @@ import * as path from 'node:path';
 import * as os from 'node:os';
 import { c } from './colors.js';
 
+/** Matches test-script basenames (e.g. test-permission-learn.sh) that must never be installed. */
+const TEST_FILE_PATTERN = /^test-.*\.sh$/;
+
 const pad = (n: number, len = 2) => String(n).padStart(len, '0');
 
 function timestamp(): string {
@@ -37,7 +40,10 @@ export function installPath(src: string, dest: string): void {
   backupIfExists(dest);
 
   console.log(c.green(`Copying: ${src} -> ${dest}`));
-  fs.cpSync(src, dest, { recursive: true });
+  fs.cpSync(src, dest, {
+    recursive: true,
+    filter: (source) => !TEST_FILE_PATTERN.test(path.basename(source)),
+  });
 }
 
 export function installDir(

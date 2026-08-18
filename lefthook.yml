@@ -51,6 +51,9 @@ pre-push:
     format-check-sh:
       glob: "**/*.sh"
       run: pnpm run format:check:sh
+    test-sh:
+      glob: "**/*.sh"
+      run: pnpm run test:sh
     spellcheck:
       glob: "**/*.{md,ts,sh}"
       run: pnpm run spellcheck
