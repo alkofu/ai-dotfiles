@@ -730,6 +730,48 @@ export function updateGithubAllowList(
   }
 }
 
+/**
+ * Runs the advisory prereq check for a server (if configured), then attempts
+ * to add the server via `claude mcp add`, logging the outcome.
+ *
+ * @param spawnFn - Injectable for testing; defaults to execFileSync.
+ * @returns true if the add succeeded, false otherwise.
+ */
+export function addMcpServer(
+  server: McpServerConfig,
+  repoRoot: string,
+  spawnFn: SpawnFn = defaultSpawn,
+): boolean {
+  // Check prereq
+  if (server.prereq !== undefined) {
+    try {
+      fs.statSync(expandVars(server.prereq));
+    } catch (err: unknown) {
+      if (
+        err instanceof Error &&
+        (err as NodeJS.ErrnoException).code === 'ENOENT'
+      ) {
+        // prereq check is advisory: warn if missing, but always proceed to add
+        console.log(
+          c.yellow(
+            `Warning: ${expandVars(server.prereq)} not found -- ${server.name} MCP will fail until this file is created`,
+          ),
+        );
+      }
+    }
+  }
+
+  // Add the server
+  try {
+    spawnFn('claude', ['mcp', 'add', ...buildAddArgs(server, repoRoot)]);
+    console.log(c.green(`MCP server '${server.name}' added`));
+    return true;
+  } catch {
+    console.log(c.red(`Failed to add MCP server '${server.name}'`));
+    return false;
+  }
+}
+
 export function installMcpServers(repoRoot: string): void {
   // Check claude CLI availability
   try {
@@ -785,39 +827,10 @@ export function installMcpServers(repoRoot: string): void {
         }
       }
 
-      // Check prereq
-      if (server.prereq !== undefined) {
-        try {
-          fs.statSync(expandVars(server.prereq));
-        } catch (err: unknown) {
-          if (
-            err instanceof Error &&
-            (err as NodeJS.ErrnoException).code === 'ENOENT'
-          ) {
-            // prereq check is advisory: warn if missing, but always proceed to add
-            console.log(
-              c.yellow(
-                `Warning: ${expandVars(server.prereq)} not found -- ${server.name} MCP will fail until this file is created`,
-              ),
-            );
-          }
-        }
-      }
-
-      // Add the server
-      try {
-        execFileSync(
-          'claude',
-          ['mcp', 'add', ...buildAddArgs(server, repoRoot)],
-          {
-            stdio: 'pipe',
-          },
-        );
+      if (addMcpServer(server, repoRoot)) {
         updatedStamps[server.name] = signature;
-        console.log(c.green(`MCP server '${server.name}' added`));
-      } catch {
+      } else {
         delete updatedStamps[server.name];
-        console.log(c.red(`Failed to add MCP server '${server.name}'`));
       }
     } else {
       // Command-based servers: skip if already configured
@@ -831,38 +844,7 @@ export function installMcpServers(repoRoot: string): void {
         // Not yet configured — proceed
       }
 
-      // Check prereq
-      if (server.prereq !== undefined) {
-        try {
-          fs.statSync(expandVars(server.prereq));
-        } catch (err: unknown) {
-          if (
-            err instanceof Error &&
-            (err as NodeJS.ErrnoException).code === 'ENOENT'
-          ) {
-            // prereq check is advisory: warn if missing, but always proceed to add
-            console.log(
-              c.yellow(
-                `Warning: ${expandVars(server.prereq)} not found -- ${server.name} MCP will fail until this file is created`,
-              ),
-            );
-          }
-        }
-      }
-
-      // Add the server
-      try {
-        execFileSync(
-          'claude',
-          ['mcp', 'add', ...buildAddArgs(server, repoRoot)],
-          {
-            stdio: 'pipe',
-          },
-        );
-        console.log(c.green(`MCP server '${server.name}' added`));
-      } catch {
-        console.log(c.red(`Failed to add MCP server '${server.name}'`));
-      }
+      addMcpServer(server, repoRoot);
     }
   }
 
