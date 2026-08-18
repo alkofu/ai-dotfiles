@@ -90,7 +90,7 @@ Each argument can be a bare integer (`42`), an integer range like `1-4` (inclusi
 | 3 | Unsupported terminal (standalone Ghostty) or undetected terminal |
 | 4 | One or more tab spawns failed (partial success) |
 
-**Prerequisite:** Requires the initial-message forwarding PR to be merged before use. That PR extended the launcher to accept an initial-message positional argument alongside `--skip`. If your installed `tpk` predates that merge, the tabs will open but each session will fail silently — re-run `install.sh` against an updated checkout to fix.
+**How it works:** `batch-open-issues.sh` passes an initial message to each spawned session by invoking the launcher with an initial-message positional argument alongside `--skip` (e.g. `tpk --skip '/feature-issue <n>'`). This is baseline launcher behavior — no additional setup is required.
 
 **Spawn success is not session success.** The script reports whether the tab was opened, not whether `tpk` started correctly inside it. Verify each tab visually after launch.
 
