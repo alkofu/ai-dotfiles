@@ -74,6 +74,7 @@
     "getattr",
     "exfiltration",
     "expanduser",
+    "fastmcp",
     "frontmatter",
     "Frontmatter",
     "ghostty",
