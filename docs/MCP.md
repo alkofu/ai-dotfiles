@@ -9,7 +9,7 @@ The installer automatically configures user-scoped MCP servers in `~/.claude.jso
 Currently configured servers:
 
 - **Kubernetes MCP Server** (`mcp-server-kubernetes@3.4.0`) — Read-only Kubernetes cluster access via `~/.kube/config`. Skips setup gracefully if that file does not exist.
-- **AWS CloudWatch MCP Server** (`awslabs.cloudwatch-mcp-server@0.0.19`) — CloudWatch Metrics, Alarms, and Logs access via `~/.aws` credentials. Uses `src/mcp/wrappers/mcp-cloudwatch.sh` for dynamic AWS profile selection (set with `/set-aws-profile`). Requires `uvx`. Skips setup gracefully if `~/.aws/credentials` does not exist.
+- **AWS CloudWatch MCP Server** (`awslabs.cloudwatch-mcp-server@0.0.19`) — CloudWatch Metrics, Alarms, and Logs access via `~/.aws` credentials. Uses `src/mcp/wrappers/mcp-cloudwatch.sh` for dynamic AWS profile selection (set with `/set-aws-profile`). Requires `uvx`. Skips setup gracefully if `~/.aws/credentials` does not exist. The wrapper constrains the transitive `mcp` SDK to `<2.0` (`uvx --with 'mcp<2.0' ...`) because the pinned server version imports `mcp.server.fastmcp`, which was removed in `mcp>=2.0`; without the cap, `uv` resolves `mcp==2.0.0` and the server crashes at import.
 - **Grafana MCP Server** (`mcp-grafana`) — Grafana dashboards, datasources, and incident access. Uses `src/mcp/wrappers/mcp-grafana.sh`, which requires `GRAFANA_URL` and `GRAFANA_SERVICE_ACCOUNT_TOKEN` in the shell environment.
 - **GitHub MCP Server** (`@modelcontextprotocol/server-github@2025.4.8`) — Multi-account GitHub repository, issue, PR, and code search access via `~/.config/tpk/github-pats.json`. Define your accounts as a flat JSON object mapping account names to PATs:
 

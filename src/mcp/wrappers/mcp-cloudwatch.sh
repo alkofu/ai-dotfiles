@@ -19,7 +19,11 @@ if [[ -n "${AWS_PROFILE:-}" ]]; then
   fi
   export AWS_PROFILE
   echo "CloudWatch MCP: using AWS profile '$AWS_PROFILE'" >&2
-  exec uvx awslabs.cloudwatch-mcp-server@0.0.19 "$@"
+  # Constrain the mcp SDK to <2.0: awslabs.cloudwatch-mcp-server@0.0.19 imports
+  # 'mcp.server.fastmcp', which mcp>=2.0 removed. Without this cap uv resolves
+  # mcp==2.0.0 and the server crashes at import (ModuleNotFoundError). Revisit
+  # only when bumping the server package to a release built against mcp>=2.0.
+  exec uvx --with 'mcp<2.0' awslabs.cloudwatch-mcp-server@0.0.19 "$@"
 fi
 
 # Neither dotfile nor env var provided a profile -- fail helpfully
