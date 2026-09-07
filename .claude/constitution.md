@@ -1,6 +1,6 @@
 # Project Constitution — ai-tpk
 
-This file defines repo-scoped invariants that govern all work in this repository. Violations of these principles must be caught at plan review (Ruinor) and rejected before execution proceeds. Because globally-installed agents (Pathfinder, Bitsmith, Ruinor) live at `~/.claude/agents/` and cannot load repo-scoped instructions from `~/.claude/`, the Dungeon Master bridges the gap by inlining this constitution into every Pathfinder, Bitsmith, and Ruinor delegation prompt at delegation time.
+This file defines repo-scoped invariants that govern all work in this repository. Violations of these principles must be caught at plan review (Ruinor) and rejected before execution proceeds. Because globally-installed agents (Pathfinder, Bitsmith, Ruinor) live at `~/.claude/agents/` and cannot load repo-scoped instructions from `~/.claude/`, the delegating root context (e.g., the Dungeon Master, or the Wayblade delivery skill) bridges the gap by inlining this constitution into every constitution-bearing (Pathfinder, Bitsmith, Ruinor) delegation prompt at delegation time.
 
 ## Definitions
 
@@ -26,7 +26,7 @@ All artifacts in `claude/` (agents, skills, commands, hooks, references, setting
 Three mechanisms enforce these principles across all work in this repository:
 
 - **(a) `.claude/CLAUDE.md` summary** — the project-scope CLAUDE.md includes a `## Project Constitution` section that names both principles, summarises them, and points here as the canonical source. Any reader of the project-scope instructions sees the principles without needing the DM injection path.
-- **(b) DM injection** — `claude/agents/dungeonmaster.md`'s `### Project Constitution Injection` section specifies how DM inlines this file's contents into every Pathfinder, Bitsmith, and Ruinor delegation prompt. This is the primary enforcement path — see the preamble above for why.
+- **(b) DM injection** — `claude/agents/dungeonmaster.md`'s `### Project Constitution Injection` section specifies how DM inlines this file's contents into every Pathfinder, Bitsmith, and Ruinor delegation prompt. This is the primary/canonical enforcement path — see the preamble above for why. Other delegating root contexts (e.g., the Wayblade delivery skill) inject via the same shared block format; DM remains the enforcement backbone.
 - **(c) Agent-level hooks** — `claude/agents/ruinor.md`'s `#### Constitution Compliance Check` section (in Phase 3) makes both principles explicit checklist items on every plan and implementation review. `claude/agents/bitsmith.md`'s "What Bitsmith Does NOT Touch" list names constitutional violations as a halt-and-escalate condition so conflicts surface before implementation rather than at review time.
 
 **Severity rule.** A demonstrable violation of either principle is at minimum a MAJOR finding and may be CRITICAL depending on impact. The verdict for an artifact containing an unresolved constitutional violation must not be ACCEPT.

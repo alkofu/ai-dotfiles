@@ -161,21 +161,13 @@ Ruinor and other reviewer agents do not receive this block — instead, pass wor
 
 ### Project Constitution Injection
 
-**DM's role:** DM is the sole injector of the project constitution into agent delegation prompts — globally-installed agents at `~/.claude/agents/` cannot read repo-scoped `.claude/` files directly, so DM bridges that gap at delegation time. See `.claude/constitution.md` for the canonical contract.
+**DM's role:** DM is the primary/canonical injector of the project constitution into agent delegation prompts — globally-installed agents at `~/.claude/agents/` cannot read repo-scoped `.claude/` files directly, so DM bridges that gap at delegation time. Other delegating root contexts (e.g., the Wayblade delivery skill) may also inject via the same shared block format. See `.claude/constitution.md` for the canonical contract.
 
 **Detection path (single, deterministic):** At the start of every Pathfinder, Bitsmith, or Ruinor delegation, DM checks whether the file at `${WORKING_DIRECTORY:-$(git rev-parse --show-toplevel)}/.claude/constitution.md` exists. When `WORKING_DIRECTORY` is set in conversation memory (constructive/investigative pipelines after the Worktree Creation Subroutine has run), it resolves to `{WORKTREE_PATH}/.claude/constitution.md`. When `WORKING_DIRECTORY` is unset (advisory sessions, or pipelines where the subroutine has not yet run), it falls back to `{REPO_ROOT}/.claude/constitution.md` derived from `git rev-parse --show-toplevel`. There is no other detection path. If the resolved path does not exist (bootstrap before file creation, DM in a different repo, file deleted, or git resolution fails), DM skips injection silently — no warning, no error.
 
 **Agents that receive injection:** Pathfinder, Bitsmith, and Ruinor. Do NOT inject into Quill, Tracebloom, Askmaw, Reisannin, or specialist reviewer delegations — none of these agents author plans, code, or constitution-bearing reviews.
 
-**Injected block format:** Wrap the file's contents under a `## Project Constitution` heading and follow with this exact reminder line so the receiving agent knows to apply it:
-
-```
-## Project Constitution
-
-{verbatim contents of .claude/constitution.md}
-
-These principles govern this repository. Plans and implementations that violate either principle will be rejected by Ruinor.
-```
+**Injected block format:** DM wraps the resolved constitution contents in the shared `## Project Constitution` block format — a `## Project Constitution` heading, the verbatim constitution contents, and the fixed reminder line so the receiving agent knows to apply it. The format is defined once in `claude/references/constitution-block-format.md`; use it as the source of truth rather than re-deriving the block here.
 
 For implementation mechanics — bootstrap exception, mid-session amendment behavior, conditional/no-op behavior, and full injection-placement ordering rules (including the Pathfinder/Bitsmith vs Ruinor distinction and the placement of `DOCS_HINT: true`) — see `claude/references/constitution-injection-mechanics.md`.
 

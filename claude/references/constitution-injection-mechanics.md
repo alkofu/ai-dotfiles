@@ -2,6 +2,8 @@
 
 This file documents the implementation mechanics of project-constitution injection, complementing the always-on invariants defined in the `### Project Constitution Injection` section of `claude/agents/dungeonmaster.md`.
 
+The mechanics below describe DM's implementation specifically. Other delegating root contexts (e.g., the Wayblade delivery skill) follow the same shared block format (see `claude/references/constitution-block-format.md`) but may differ in worktree resolution and placement mechanics.
+
 ## Bootstrap exception
 
 **Bootstrap exception:** The very first session in this repository that creates `.claude/constitution.md` (e.g., the session executing the bootstrap plan that introduced this file) will not see injection during its own Pathfinder and Bitsmith delegations, because the file does not exist on the branch the worktree was cut from at the moment those delegations are issued. Injection begins to fire as soon as the step that creates `.claude/constitution.md` completes — meaning Ruinor reviewing the bootstrap implementation will see the constitution injected, even though Pathfinder and Bitsmith producing it did not. This is an accepted bootstrap asymmetry; subsequent sessions in the same worktree (or any worktree cut from a branch where the file exists) will see injection from the first delegation onward.
